@@ -1,0 +1,197 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Payments & Billing - FitZone Admin{% endblock %}
+{% block page_title %}Billing & Financial Records{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-black text-white">Billing & Payments Ledger</h1>
+            <p class="text-xs text-slate-400 mt-0.5">Audit transaction histories, generate tax invoices, and record incoming dues</p>
+        </div>
+        <div class="flex items-center gap-2.5">
+            <a href="{% url 'admin_export_payments' %}" class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-semibold transition">
+                <i class="fa-solid fa-file-csv text-slate-400"></i>
+                <span>Export CSV</span>
+            </a>
+            <a href="{% url 'admin_payment_add' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-lg shadow-red-600/30 transition">
+                <i class="fa-solid fa-plus"></i>
+                <span>Record Payment</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Financial KPI Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="flex items-center justify-between text-xs text-slate-400 uppercase font-semibold">
+                <span>Total Collected</span>
+                <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+            </div>
+            <div class="mt-3 text-2xl sm:text-3xl font-black text-emerald-400">
+                ₹{{ total_collected|floatformat:2 }}
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">Successfully cleared payments</div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="flex items-center justify-between text-xs text-slate-400 uppercase font-semibold">
+                <span>Pending Receivables</span>
+                <i class="fa-solid fa-hourglass-half text-amber-400 text-base"></i>
+            </div>
+            <div class="mt-3 text-2xl sm:text-3xl font-black text-amber-400">
+                ₹{{ pending_amount|floatformat:2 }}
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">Awaiting client payment confirmation</div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="flex items-center justify-between text-xs text-slate-400 uppercase font-semibold">
+                <span>Failed Transactions</span>
+                <i class="fa-solid fa-circle-xmark text-rose-400 text-base"></i>
+            </div>
+            <div class="mt-3 text-2xl sm:text-3xl font-black text-rose-400">
+                {{ failed_count }}
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1">Declined or aborted attempts</div>
+        </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <form method="GET" action="" class="flex-1 flex flex-col sm:flex-row items-center gap-3">
+            <div class="relative w-full sm:max-w-xs">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                </span>
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ search_query }}"
+                    placeholder="Search invoice #, member, txn..."
+                    class="w-full pl-9 pr-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none text-xs text-white placeholder-slate-500">
+            </div>
+
+            <!-- Status filter tabs -->
+            <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                <a href="?status=all{% if search_query %}&q={{ search_query }}{% endif %}{% if method_filter %}&method={{ method_filter }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition {% if status_filter == 'all' %}bg-red-600 text-white{% else %}text-slate-400 hover:bg-slate-800 hover:text-white{% endif %}">
+                    All ({{ total_count }})
+                </a>
+                <a href="?status=Paid{% if search_query %}&q={{ search_query }}{% endif %}{% if method_filter %}&method={{ method_filter }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition {% if status_filter == 'Paid' %}bg-emerald-600 text-white{% else %}text-slate-400 hover:bg-slate-800 hover:text-white{% endif %}">
+                    Paid
+                </a>
+                <a href="?status=Pending{% if search_query %}&q={{ search_query }}{% endif %}{% if method_filter %}&method={{ method_filter }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition {% if status_filter == 'Pending' %}bg-amber-600 text-white{% else %}text-slate-400 hover:bg-slate-800 hover:text-white{% endif %}">
+                    Pending
+                </a>
+                <a href="?status=Failed{% if search_query %}&q={{ search_query }}{% endif %}{% if method_filter %}&method={{ method_filter }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition {% if status_filter == 'Failed' %}bg-rose-600 text-white{% else %}text-slate-400 hover:bg-slate-800 hover:text-white{% endif %}">
+                    Failed
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Ledger Table -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="bg-slate-950/60 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                        <th class="py-3.5 px-4">Invoice #</th>
+                        <th class="py-3.5 px-4">Date</th>
+                        <th class="py-3.5 px-4">Member</th>
+                        <th class="py-3.5 px-4">Description / Plan</th>
+                        <th class="py-3.5 px-4">Amount</th>
+                        <th class="py-3.5 px-4">Method</th>
+                        <th class="py-3.5 px-4">Status</th>
+                        <th class="py-3.5 px-4 text-right">PDF Invoice</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60 text-slate-300">
+                    {% for p in payments %}
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="py-3.5 px-4 font-mono font-bold text-slate-200">
+                            <a href="{% url 'admin_payment_detail' p.id %}" class="hover:text-red-400 transition">
+                                {{ p.invoice_number }}
+                            </a>
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-400">
+                            {{ p.payment_date|date:"d M Y, H:i" }}
+                        </td>
+                        <td class="py-3.5 px-4">
+                            {% if p.user %}
+                            <a href="{% url 'admin_member_detail' p.user.id %}" class="font-bold text-white hover:text-red-400 transition">
+                                {{ p.user.get_full_name|default:p.user.username }}
+                            </a>
+                            <div class="text-[11px] text-slate-400">{{ p.user.email }}</div>
+                            {% else %}
+                            <span class="font-bold text-white">Walk-in Guest</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-300">
+                            {{ p.subscription.plan_name|default:p.notes|default:"Gym Fee" }}
+                        </td>
+                        <td class="py-3.5 px-4 font-bold text-emerald-400 text-sm">
+                            ₹{{ p.amount }}
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-300">
+                            <span class="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-[11px]">{{ p.payment_method }}</span>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <form method="POST" action="{% url 'admin_payment_update_status' p.id %}" class="inline-block">
+                                {% csrf_token %}
+                                <select name="status" onchange="this.form.submit()" class="text-[11px] font-bold rounded-full px-2 py-0.5 outline-none cursor-pointer {% if p.payment_status == 'Paid' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% elif p.payment_status == 'Pending' %}bg-amber-500/10 text-amber-400 border border-amber-500/20{% else %}bg-rose-500/10 text-rose-400 border border-rose-500/20{% endif %}">
+                                    <option value="Paid" class="bg-slate-900 text-white" {% if p.payment_status == 'Paid' %}selected{% endif %}>Paid</option>
+                                    <option value="Pending" class="bg-slate-900 text-white" {% if p.payment_status == 'Pending' %}selected{% endif %}>Pending</option>
+                                    <option value="Failed" class="bg-slate-900 text-white" {% if p.payment_status == 'Failed' %}selected{% endif %}>Failed</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td class="py-3.5 px-4 text-right">
+                            <div class="inline-flex items-center gap-1.5">
+                                <a href="{% url 'admin_payment_invoice_pdf' p.id %}" target="_blank" class="p-1.5 rounded-lg bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/20 transition flex items-center gap-1 text-[11px] font-bold" title="Generate & Download PDF">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                    <span>PDF</span>
+                                </a>
+                                <a href="{% url 'admin_payment_detail' p.id %}" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="View Details">
+                                    <i class="fa-solid fa-eye text-xs"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-12 text-center text-slate-500">
+                            No billing records match the current filter.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if payments.has_other_pages %}
+        <div class="px-6 py-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+            <div>
+                Page {{ payments.number }} of {{ payments.paginator.num_pages }}
+            </div>
+            <div class="flex items-center gap-1">
+                {% if payments.has_previous %}
+                <a href="?page={{ payments.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">Previous</a>
+                {% endif %}
+
+                <span class="px-3 py-1.5 rounded-lg bg-red-600 text-white font-bold">{{ payments.number }}</span>
+
+                {% if payments.has_next %}
+                <a href="?page={{ payments.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">Next</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

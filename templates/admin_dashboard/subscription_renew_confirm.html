@@ -1,0 +1,51 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Renew Subscription - FitZone Admin{% endblock %}
+{% block page_title %}Renew Membership Subscription{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-12 bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center shadow-2xl">
+    
+    <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl mx-auto mb-4">
+        <i class="fa-solid fa-arrows-rotate"></i>
+    </div>
+
+    <h1 class="text-xl font-black text-white">
+        Renew Membership Plan?
+    </h1>
+
+    <p class="text-xs text-slate-400 mt-2">
+        Renew subscription for <span class="font-bold text-white">{{ subscription.customer_name }}</span> for <span class="font-bold text-red-400">{{ subscription.plan_name }}</span>?
+    </p>
+
+    <div class="mt-4 p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-left space-y-2">
+        <div class="flex justify-between">
+            <span class="text-slate-400">Plan Rate:</span>
+            <span class="font-bold text-white">₹{{ subscription.price }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-slate-400">Billing Cycle:</span>
+            <span class="text-slate-300 font-medium">{{ subscription.billing_cycle }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-slate-400">Current Expiry:</span>
+            <span class="text-slate-300 font-medium">{{ subscription.end_date|default:"Expired" }}</span>
+        </div>
+        <div class="pt-2 border-t border-slate-800 text-[11px] text-emerald-400">
+            <i class="fa-solid fa-circle-check mr-1"></i>
+            This will extend the membership end date and automatically log a renewal payment invoice.
+        </div>
+    </div>
+
+    <form method="POST" action="" class="mt-6 flex items-center justify-center gap-3">
+        {% csrf_token %}
+        <a href="{% url 'admin_subscriptions' %}" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+            Cancel
+        </a>
+        <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 transition">
+            Confirm & Renew Now
+        </button>
+    </form>
+
+</div>
+{% endblock %}

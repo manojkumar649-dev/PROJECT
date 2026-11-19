@@ -1,0 +1,122 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Settings - FitZone Admin{% endblock %}
+{% block page_title %}System & Facility Settings{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div>
+        <h1 class="text-xl sm:text-2xl font-black text-white">System & Facility Configuration</h1>
+        <p class="text-xs text-slate-400 mt-0.5">Manage gym profile, administrative credentials and application parameters</p>
+    </div>
+
+    <!-- Gym Profile Settings -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+        <div class="flex items-center gap-3 mb-6 pb-6 border-b border-slate-800">
+            <div class="w-10 h-10 rounded-xl bg-red-600/10 text-red-500 border border-red-500/20 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-building"></i>
+            </div>
+            <div>
+                <h2 class="text-base font-bold text-white">Gym Facility Details</h2>
+                <p class="text-xs text-slate-400">Printed on official invoices and customer receipts</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+                <label class="block font-semibold text-slate-400 mb-1">Gym Name</label>
+                <input type="text" value="FitZone Fitness & Gym Club" readonly class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium">
+            </div>
+
+            <div>
+                <label class="block font-semibold text-slate-400 mb-1">Support Email</label>
+                <input type="text" value="support@fitzone.com" readonly class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium">
+            </div>
+
+            <div>
+                <label class="block font-semibold text-slate-400 mb-1">Helpline Phone</label>
+                <input type="text" value="+91 98888 88888" readonly class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium">
+            </div>
+
+            <div>
+                <label class="block font-semibold text-slate-400 mb-1">GSTIN / Tax ID</label>
+                <input type="text" value="33AAAAA0000A1Z5" readonly class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium">
+            </div>
+
+            <div class="sm:col-span-2">
+                <label class="block font-semibold text-slate-400 mb-1">Facility Address</label>
+                <input type="text" value="123 Elite Fitness Boulevard, Health District, Metro City" readonly class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium">
+            </div>
+        </div>
+    </div>
+
+    <!-- Administrator Profile -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+        <div class="flex items-center gap-3 mb-6 pb-6 border-b border-slate-800">
+            <div class="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-500 border border-blue-500/20 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div>
+                <h2 class="text-base font-bold text-white">Current Administrator Account</h2>
+                <p class="text-xs text-slate-400">Authenticated staff session information</p>
+            </div>
+        </div>
+
+        <div class="space-y-4 text-xs">
+            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+                <div>
+                    <div class="font-bold text-white text-sm">{{ admin_user.username }}</div>
+                    <div class="text-slate-400 mt-0.5">{{ admin_user.email }}</div>
+                </div>
+                <div class="text-right">
+                    <span class="px-2.5 py-1 rounded-full bg-red-600/20 border border-red-500/30 text-red-400 font-bold text-[10px] uppercase">
+                        {% if admin_user.is_superuser %}Superuser Access{% else %}Staff Member{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+                <span class="text-slate-400">Need to access Django default admin?</span>
+                <a href="/admin/" target="_blank" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold border border-slate-700 transition">
+                    Open Django Admin (/admin/) →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Database & System Status -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+        <div class="flex items-center gap-3 mb-6 pb-6 border-b border-slate-800">
+            <div class="w-10 h-10 rounded-xl bg-emerald-600/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-server"></i>
+            </div>
+            <div>
+                <h2 class="text-base font-bold text-white">SQLite Database Status</h2>
+                <p class="text-xs text-slate-400">Live counts directly queried from `db.sqlite3`</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-xs">
+            <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800">
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Total Users</span>
+                <span class="text-xl font-black text-white mt-1 block">{{ total_users }}</span>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800">
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Plans in DB</span>
+                <span class="text-xl font-black text-white mt-1 block">{{ total_plans }}</span>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800">
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Subscriptions</span>
+                <span class="text-xl font-black text-white mt-1 block">{{ total_subs }}</span>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800">
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Payment Records</span>
+                <span class="text-xl font-black text-white mt-1 block">{{ total_payments }}</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

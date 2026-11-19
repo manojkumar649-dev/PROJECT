@@ -1,0 +1,256 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Reports & Analytics - FitZone Admin{% endblock %}
+{% block page_title %}Reports & Business Intelligence{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-black text-white">Gym Analytics & Financial Reports</h1>
+            <p class="text-xs text-slate-400 mt-0.5">Comprehensive dynamic metrics generated directly from your SQLite database</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{% url 'admin_export_members' %}" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-semibold transition">
+                <i class="fa-solid fa-users text-slate-400"></i>
+                <span>Export Members</span>
+            </a>
+            <a href="{% url 'admin_export_payments' %}" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-semibold transition">
+                <i class="fa-solid fa-file-invoice-dollar text-slate-400"></i>
+                <span>Export Ledger</span>
+            </a>
+            <a href="{% url 'admin_export_attendance' %}" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-semibold transition">
+                <i class="fa-solid fa-clipboard-user text-slate-400"></i>
+                <span>Export Attendance</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- High-level Metrics Strip -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Revenue</span>
+            <div class="text-2xl font-black text-white mt-1">₹{{ total_revenue|floatformat:2 }}</div>
+            <span class="text-[10px] text-emerald-400">Real-time DB aggregate</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Members</span>
+            <div class="text-2xl font-black text-blue-400 mt-1">{{ total_members }}</div>
+            <span class="text-[10px] text-slate-400">Registered users</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Subscriptions</span>
+            <div class="text-2xl font-black text-purple-400 mt-1">{{ total_subscriptions }}</div>
+            <span class="text-[10px] text-slate-400">All-time passes</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Recorded Check-ins</span>
+            <div class="text-2xl font-black text-teal-400 mt-1">{{ total_attendance }}</div>
+            <span class="text-[10px] text-slate-400">Gym entry logs</span>
+        </div>
+    </div>
+
+    <!-- 4 VISUAL CHARTS (2x2 GRID) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Chart 1: Monthly Revenue Trend -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-emerald-400"></i>
+                        <span>Monthly Revenue Trend (Last 6 Months)</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-400">Collection amount in ₹ INR per month</p>
+                </div>
+            </div>
+            <div class="h-64">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Member Growth Rate -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus text-blue-400"></i>
+                        <span>Member Registrations (Growth Rate)</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-400">New gym joiners enrolled each month</p>
+                </div>
+            </div>
+            <div class="h-64">
+                <canvas id="growthChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 3: Active vs Expired Memberships -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-amber-400"></i>
+                        <span>Membership Status Breakdown</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-400">Active vs Expiring Soon vs Expired subscriptions</p>
+                </div>
+            </div>
+            <div class="h-64 flex items-center justify-center">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 4: Popular Membership Plans -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-cubes text-purple-400"></i>
+                        <span>Popular Membership Plans</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-400">Subscriber count distribution per package tier</p>
+                </div>
+            </div>
+            <div class="h-64">
+                <canvas id="plansChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+
+        // 1. Revenue Chart
+        const revCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ months_labels_json|safe }},
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: {{ revenue_data_json|safe }},
+                    backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                    borderColor: '#ef4444',
+                    borderWidth: 1.5,
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(51, 65, 85, 0.4)' },
+                        ticks: { callback: val => '₹' + val }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 2. Growth Chart
+        const growthCtx = document.getElementById('growthChart').getContext('2d');
+        new Chart(growthCtx, {
+            type: 'line',
+            data: {
+                labels: {{ months_labels_json|safe }},
+                datasets: [{
+                    label: 'New Members',
+                    data: {{ members_growth_json|safe }},
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: '#38bdf8',
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(51, 65, 85, 0.4)' },
+                        ticks: { stepSize: 1 }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 3. Status Chart (Doughnut)
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ status_labels|safe }},
+                datasets: [{
+                    data: {{ status_data|safe }},
+                    backgroundColor: [
+                        '#10b981', // Active
+                        '#f59e0b', // Expiring Soon
+                        '#f43f5e', // Expired
+                        '#64748b', // Cancelled
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, padding: 16 }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+
+        // 4. Plans Chart (Horizontal Bar)
+        const plansCtx = document.getElementById('plansChart').getContext('2d');
+        new Chart(plansCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ plans_labels_json|safe }},
+                datasets: [{
+                    label: 'Members',
+                    data: {{ plans_counts_json|safe }},
+                    backgroundColor: 'rgba(168, 85, 247, 0.75)',
+                    borderColor: '#a855f7',
+                    borderWidth: 1.5,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(51, 65, 85, 0.4)' },
+                        ticks: { stepSize: 1 }
+                    },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+
+    });
+</script>
+{% endblock %}

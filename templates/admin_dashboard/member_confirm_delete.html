@@ -1,0 +1,37 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Delete Member - FitZone Admin{% endblock %}
+{% block page_title %}Delete Member{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-12 bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center shadow-2xl">
+    
+    <div class="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center text-2xl mx-auto mb-4">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+
+    <h1 class="text-xl font-black text-white">
+        Delete Member Account?
+    </h1>
+
+    <p class="text-xs text-slate-400 mt-2">
+        Are you sure you want to permanently delete member <span class="font-bold text-white">{{ member.get_full_name|default:member.username }}</span> ({{ member.email }})?
+    </p>
+
+    <div class="mt-4 p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 text-left">
+        <i class="fa-solid fa-circle-info text-amber-400 mr-1"></i>
+        This will delete the member's profile, subscriptions, attendance records, and payment associations. This action cannot be undone.
+    </div>
+
+    <form method="POST" action="" class="mt-6 flex items-center justify-center gap-3">
+        {% csrf_token %}
+        <a href="{% url 'admin_members' %}" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+            Cancel
+        </a>
+        <button type="submit" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-lg shadow-rose-600/30 transition">
+            Yes, Delete Permanently
+        </button>
+    </form>
+
+</div>
+{% endblock %}

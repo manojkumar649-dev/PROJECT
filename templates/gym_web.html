@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FITZONE GYM - Modern Fitness & Nutrition</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: #090d16;
+}
+
+.hero {
+    background: linear-gradient(rgba(0,0,0,.75), rgba(0,0,0,.75)),
+    url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1500&q=80");
+    background-size: cover;
+    background-position: center;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    transition: .4s;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+    background: #ef4444;
+    border-radius: 4px;
+}
+</style>
+
+</head>
+<body class="bg-[#090d16] text-white">
+
+<!-- NOTIFICATION MESSAGES -->
+{% if messages %}
+<div class="fixed top-20 right-5 z-50 space-y-2 max-w-md">
+    {% for message in messages %}
+    <div class="p-4 rounded-xl shadow-2xl flex items-center justify-between border {% if message.tags == 'success' %}bg-green-900/90 border-green-500 text-green-100{% elif message.tags == 'error' %}bg-red-900/90 border-red-500 text-red-100{% else %}bg-blue-900/90 border-blue-500 text-blue-100{% endif %} backdrop-blur-md">
+        <span>{{ message }}</span>
+        <button onclick="this.parentElement.remove()" class="ml-4 font-bold text-lg">&times;</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 w-full bg-black/85 backdrop-blur-lg z-50 border-b border-gray-800">
+    <div class="max-w-7xl mx-auto flex justify-between items-center p-4 px-6">
+
+        <a href="{% url 'home' %}" class="flex items-center gap-2">
+            <span class="text-3xl">🔥</span>
+            <h1 class="text-3xl font-black tracking-wider text-red-500">
+                FITZONE
+            </h1>
+        </a>
+
+        <ul class="hidden lg:flex gap-7 font-semibold items-center text-sm uppercase tracking-wider">
+            <li><a href="#home" class="hover:text-red-500 transition">Home</a></li>
+            <li><a href="#about" class="hover:text-red-500 transition">About</a></li>
+            <li><a href="#plans" class="hover:text-red-500 transition">Membership Plans</a></li>
+            <li><a href="#diet" class="hover:text-red-500 transition text-amber-400 font-bold">🥗 Diet Plans</a></li>
+            <li><a href="#trainer" class="hover:text-red-500 transition">Trainers</a></li>
+            <li><a href="#bmi" class="hover:text-red-500 transition">BMI</a></li>
+            <li><a href="#contact" class="hover:text-red-500 transition">Contact</a></li>
+        </ul>
+
+        <div class="hidden md:flex items-center gap-4">
+            {% if user.is_authenticated %}
+                <span class="text-gray-300 text-sm font-medium">Hello, <strong class="text-white">{{ user.first_name|default:user.username }}</strong></span>
+                <a href="{% url 'logout' %}" class="bg-gray-800 hover:bg-red-600 text-gray-200 hover:text-white px-4 py-2 rounded-full text-sm font-semibold transition">
+                    Logout
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="text-gray-300 hover:text-white font-semibold text-sm transition">
+                    Sign In
+                </a>
+                <a href="{% url 'register' %}" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-full font-semibold text-sm transition shadow-lg shadow-red-600/30">
+                    Join Now
+                </a>
+            {% endif %}
+        </div>
+
+        <button id="menuBtn" class="lg:hidden text-3xl text-gray-200">
+            ☰
+        </button>
+
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="hidden bg-gray-950/95 border-b border-gray-800 text-center p-6 space-y-4 lg:hidden">
+        <a href="#home" class="block hover:text-red-500">Home</a>
+        <a href="#about" class="block hover:text-red-500">About</a>
+        <a href="#plans" class="block hover:text-red-500">Plans</a>
+        <a href="#diet" class="block text-amber-400 font-bold">🥗 Diet Plans</a>
+        <a href="#trainer" class="block hover:text-red-500">Trainers</a>
+        <a href="#bmi" class="block hover:text-red-500">BMI Calculator</a>
+        <a href="#contact" class="block hover:text-red-500">Contact</a>
+        <hr class="border-gray-800">
+        {% if user.is_authenticated %}
+            <p class="text-sm text-gray-400">Signed in as <strong class="text-white">{{ user.username }}</strong></p>
+            <a href="{% url 'logout' %}" class="block text-red-400 font-semibold">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="block text-gray-300">Sign In</a>
+            <a href="{% url 'register' %}" class="block bg-red-600 text-white py-2 rounded-lg font-semibold">Join FitZone</a>
+        {% endif %}
+    </div>
+
+</nav>
+
+<!-- HERO -->
+<section id="home" class="hero min-h-screen flex items-center pt-24">
+    <div class="max-w-7xl mx-auto px-6 py-16">
+        <span class="inline-block bg-red-600/20 text-red-400 font-bold px-4 py-1.5 rounded-full text-sm mb-4 border border-red-500/30">
+            ⚡ WORLD CLASS FITNESS & DIET TRACKING
+        </span>
+        <h2 class="text-5xl md:text-7xl font-black leading-tight">
+            BUILD YOUR <br>
+            <span class="text-red-500">DREAM BODY</span>
+        </h2>
+
+        <p class="text-gray-300 mt-6 text-lg md:text-xl max-w-xl leading-relaxed">
+            Join the elite fitness community with certified trainers, scientific diet plans stored in database, and real-time subscription tracking in SubTrack.
+        </p>
+
+        <div class="mt-8 flex flex-wrap gap-4">
+            <a href="{% url 'register' %}" class="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-full font-bold text-lg shadow-xl shadow-red-600/40 transition">
+                JOIN NOW
+            </a>
+            <a href="#plans" class="border border-gray-500 hover:border-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-black transition">
+                VIEW PLANS
+            </a>
+            <a href="{% url 'diet_plans' %}" class="bg-amber-600 hover:bg-amber-700 px-8 py-4 rounded-full font-bold text-lg shadow-xl shadow-amber-600/30 transition">
+                🥗 DIET PLANS
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- STATS -->
+<section class="py-16 bg-slate-900/60 border-y border-gray-800">
+    <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center px-6">
+        <div>
+            <h2 class="text-4xl md:text-5xl font-black text-red-500 counter" data-target="1500">0</h2>
+            <p class="text-gray-400 mt-2 font-medium">Active Members</p>
+        </div>
+        <div>
+            <h2 class="text-4xl md:text-5xl font-black text-red-500 counter" data-target="25">0</h2>
+            <p class="text-gray-400 mt-2 font-medium">Professional Trainers</p>
+        </div>
+        <div>
+            <h2 class="text-4xl md:text-5xl font-black text-red-500 counter" data-target="10">0</h2>
+            <p class="text-gray-400 mt-2 font-medium">Years Experience</p>
+        </div>
+        <div>
+            <h2 class="text-4xl md:text-5xl font-black text-red-500 counter" data-target="24">0</h2>
+            <p class="text-gray-400 mt-2 font-medium">Open Hours Access</p>
+        </div>
+    </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="py-20">
+    <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center px-6">
+        <div class="relative group">
+            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80"
+                class="rounded-2xl shadow-2xl border border-gray-800 object-cover w-full h-[450px]" alt="Gym Equipment">
+            <div class="absolute -bottom-6 -right-6 bg-red-600 p-6 rounded-2xl hidden md:block shadow-2xl">
+                <p class="text-3xl font-black">100%</p>
+                <p class="text-sm font-semibold">Results Guaranteed</p>
+            </div>
+        </div>
+
+        <div>
+            <span class="text-red-500 uppercase tracking-widest font-bold text-sm">Why Choose FitZone</span>
+            <h2 class="text-4xl font-extrabold mb-6 mt-2 leading-tight">
+                Transform Your Body With Expert Guidance & Nutrition
+            </h2>
+
+            <p class="text-gray-300 leading-relaxed text-lg">
+                Our gym combines top-tier biomechanically optimized equipment with tailored diet plans stored in SQLite database. Join our community and hit your fitness milestones effortlessly.
+            </p>
+
+            <div class="grid grid-cols-2 gap-4 mt-8">
+                <div class="bg-gray-800/80 p-5 rounded-xl border border-gray-700/50 flex items-center gap-3">
+                    <span class="text-2xl">🏋️</span>
+                    <span class="font-semibold">Modern Equipment</span>
+                </div>
+                <div class="bg-gray-800/80 p-5 rounded-xl border border-gray-700/50 flex items-center gap-3">
+                    <span class="text-2xl">💪</span>
+                    <span class="font-semibold">Certified Coaches</span>
+                </div>
+                <div class="bg-gray-800/80 p-5 rounded-xl border border-gray-700/50 flex items-center gap-3">
+                    <span class="text-2xl">🥗</span>
+                    <span class="font-semibold">Custom Diet Plans</span>
+                </div>
+                <div class="bg-gray-800/80 p-5 rounded-xl border border-gray-700/50 flex items-center gap-3">
+                    <span class="text-2xl">📅</span>
+                    <span class="font-semibold">Flexible Membership</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MEMBERSHIP PLANS (CONNECTED TO DB) -->
+<section id="plans" class="py-20 bg-gray-900 border-t border-gray-800">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-red-500 uppercase tracking-widest font-bold text-sm">PRICING & MEMBERSHIP</span>
+            <h2 class="text-4xl md:text-5xl font-black mt-2">
+                Choose Your Membership Plan
+            </h2>
+            <p class="text-gray-400 mt-4 text-lg">
+                Select any plan below to join FitZone Gym and start your fitness journey today.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8 items-stretch">
+            {% for plan in plans %}
+            <div class="card rounded-2xl p-8 flex flex-col justify-between transition-all duration-300 relative {% if plan.is_popular %}bg-gradient-to-b from-red-600 to-red-700 text-white shadow-2xl scale-105 border-2 border-red-400{% else %}bg-gray-800/90 text-white border border-gray-700{% endif %}">
+                
+                {% if plan.badge %}
+                <span class="absolute top-4 right-4 bg-black/40 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-white/20">
+                    {{ plan.badge }}
+                </span>
+                {% endif %}
+
+                <div>
+                    <h3 class="text-2xl font-black">{{ plan.name }}</h3>
+                    <p class="text-sm {% if plan.is_popular %}text-red-100{% else %}text-gray-400{% endif %} mt-1">{{ plan.description|default:"Full fitness club access" }}</p>
+
+                    <div class="my-6">
+                        <span class="text-5xl font-extrabold">₹{{ plan.price|floatformat:0 }}</span>
+                        <span class="text-sm opacity-80">/ {{ plan.billing_cycle }}</span>
+                    </div>
+
+                    <hr class="{% if plan.is_popular %}border-red-400/50{% else %}border-gray-700{% endif %} my-6">
+
+                    <ul class="space-y-3.5 text-sm">
+                        {% for feature in plan.feature_list %}
+                        <li class="flex items-center gap-3">
+                            <span class="text-lg">✓</span>
+                            <span>{{ feature }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="mt-8">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'checkout' plan.id %}" class="w-full block text-center py-3.5 rounded-xl font-bold transition shadow-lg {% if plan.is_popular %}bg-white text-red-600 hover:bg-gray-100{% else %}bg-red-600 hover:bg-red-700 text-white{% endif %}">
+                            Choose Plan & Subscribe
+                        </a>
+                    {% else %}
+                        <a href="{% url 'register' %}?plan={{ plan.id }}" class="w-full block text-center py-3.5 rounded-xl font-bold transition shadow-lg {% if plan.is_popular %}bg-white text-red-600 hover:bg-gray-100{% else %}bg-red-600 hover:bg-red-700 text-white{% endif %}">
+                            Join With {{ plan.name }}
+                        </a>
+                    {% endif %}
+                </div>
+
+            </div>
+            {% empty %}
+            <div class="col-span-3 text-center py-12 text-gray-400">
+                <p>Loading membership plans from database...</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- DIET PLANS IN DB AND SHOW (USER REQUIREMENT) -->
+<section id="diet" class="py-20 bg-slate-950">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+            <div>
+                <span class="text-amber-500 uppercase tracking-widest font-bold text-sm">NUTRITION & DIET PLANS</span>
+                <h2 class="text-4xl md:text-5xl font-black mt-2">
+                    Expert Nutrition & Diet Plans
+                </h2>
+                <p class="text-gray-400 mt-3 text-lg max-w-2xl">
+                    Stored in SQLite database. Structured daily meals with calculated macros (Protein, Carbs, Fats) and daily caloric targets.
+                </p>
+            </div>
+            <a href="{% url 'diet_plans' %}" class="bg-amber-500 hover:bg-amber-600 text-black font-bold px-6 py-3 rounded-xl transition flex items-center gap-2">
+                <span>Browse All Plans</span>
+                <span>→</span>
+            </a>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            {% for dp in diet_plans %}
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-xl hover:border-amber-500/50 transition duration-300 flex flex-col justify-between">
+                <div>
+                    <div class="h-48 relative overflow-hidden">
+                        <img src="{{ dp.image_url|default:'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=800&q=80' }}"
+                             alt="{{ dp.title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <span class="absolute top-3 right-3 bg-amber-500 text-black font-black text-xs px-3 py-1 rounded-full uppercase">
+                            {{ dp.category }}
+                        </span>
+                    </div>
+
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-2xl font-black text-amber-400">{{ dp.target_calories }} <span class="text-sm font-normal text-gray-400">kcal/day</span></span>
+                            <span class="text-xs text-gray-400 bg-gray-800 px-2.5 py-1 rounded">💧 {{ dp.hydration_water_liters }}L Water</span>
+                        </div>
+
+                        <h3 class="text-xl font-bold mb-2">{{ dp.title }}</h3>
+                        <p class="text-gray-400 text-sm line-clamp-2 mb-4">{{ dp.description }}</p>
+
+                        <!-- Macros breakdown bar -->
+                        <div class="grid grid-cols-3 gap-2 bg-gray-800/80 p-3 rounded-xl text-center text-xs mb-4">
+                            <div>
+                                <span class="text-gray-400 block">Protein</span>
+                                <span class="font-bold text-red-400 text-sm">{{ dp.protein_grams }}g</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 block">Carbs</span>
+                                <span class="font-bold text-yellow-400 text-sm">{{ dp.carbs_grams }}g</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 block">Fats</span>
+                                <span class="font-bold text-blue-400 text-sm">{{ dp.fats_grams }}g</span>
+                            </div>
+                        </div>
+
+                        <!-- Sample meal snippet -->
+                        <div class="text-xs text-gray-300 space-y-1 bg-black/40 p-3 rounded-lg border border-gray-800">
+                            <p><strong class="text-amber-400">Breakfast:</strong> {{ dp.breakfast|truncatechars:50 }}</p>
+                            <p><strong class="text-amber-400">Lunch:</strong> {{ dp.lunch|truncatechars:50 }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 pt-0 flex gap-3">
+                    <button onclick="openDietModal({{ dp.id }})" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+                        View Full Meals
+                    </button>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'select_diet_plan' dp.id %}" class="bg-amber-500 hover:bg-amber-600 text-black font-bold px-4 py-2.5 rounded-lg text-sm transition flex items-center justify-center">
+                        Adopt Plan
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-3 text-center py-10 text-gray-400">
+                <p>No diet plans loaded yet. Check back soon!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- BMI CALCULATOR -->
+<section id="bmi" class="py-20 bg-gray-900 border-t border-gray-800">
+    <div class="max-w-xl mx-auto bg-gray-800/90 rounded-2xl p-8 md:p-10 border border-gray-700 shadow-2xl">
+        <div class="text-center mb-8">
+            <span class="text-red-500 uppercase tracking-widest font-bold text-xs">BODY MASS INDEX</span>
+            <h2 class="text-3xl font-extrabold mt-1">BMI Calculator</h2>
+            <p class="text-gray-400 text-sm mt-1">Check your body mass index to find the best diet & training routine</p>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1">Weight (in Kilograms)</label>
+                <input id="weight" type="number" placeholder="e.g. 70"
+                    class="w-full p-3.5 rounded-xl bg-gray-900 border border-gray-700 focus:border-red-500 outline-none text-white">
+            </div>
+
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-1">Height (in Centimeters)</label>
+                <input id="height" type="number" placeholder="e.g. 175"
+                    class="w-full p-3.5 rounded-xl bg-gray-900 border border-gray-700 focus:border-red-500 outline-none text-white">
+            </div>
+
+            <button onclick="calculateBMI()"
+                class="bg-red-600 hover:bg-red-700 text-white font-bold w-full py-3.5 rounded-xl transition shadow-lg shadow-red-600/30">
+                Calculate BMI
+            </button>
+
+            <div id="resultBox" class="hidden text-center mt-6 p-4 rounded-xl border">
+                <h3 id="result" class="text-2xl font-bold"></h3>
+                <p id="recommendation" class="text-sm text-gray-300 mt-2"></p>
+                <a href="{% url 'diet_plans' %}" class="inline-block mt-3 text-xs bg-amber-500 text-black font-bold px-3 py-1.5 rounded-lg">
+                    See Matching Diet Plans →
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TRAINERS -->
+<section id="trainer" class="py-20 bg-slate-950">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <span class="text-red-500 uppercase tracking-widest font-bold text-sm">EXPERT TEAM</span>
+            <h2 class="text-4xl md:text-5xl font-black mt-2">Meet Our Trainers</h2>
+            <p class="text-gray-400 mt-3">Certified personal trainers and nutrition coaches dedicated to your results</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            {% for trainer in trainers %}
+            <div class="card bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+                <div class="h-80 overflow-hidden">
+                    <img src="{{ trainer.image_url|default:'https://images.unsplash.com/photo-1567013127542-490d757e51fc?auto=format&fit=crop&w=800&q=80' }}"
+                        alt="{{ trainer.name }}" class="w-full h-full object-cover">
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="text-2xl font-bold">{{ trainer.name }}</h3>
+                        <span class="text-xs bg-gray-800 text-gray-300 px-2.5 py-1 rounded">{{ trainer.experience }}</span>
+                    </div>
+                    <p class="text-red-500 font-semibold text-sm">{{ trainer.role }}</p>
+                    <p class="text-gray-400 text-sm mt-3">{{ trainer.bio }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-3 text-center text-gray-400">Loading trainers...</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="py-20 bg-gray-900 border-t border-gray-800">
+    <div class="max-w-4xl mx-auto text-center px-6">
+        <span class="text-red-500 uppercase tracking-widest font-bold text-sm">SUCCESS STORIES</span>
+        <h2 class="text-4xl md:text-5xl font-black mt-2 mb-10">What Members Say</h2>
+        <div class="bg-gray-800/60 p-8 md:p-12 rounded-3xl border border-gray-700/60 shadow-2xl relative">
+            <span class="text-6xl text-red-500/20 absolute top-4 left-6">“</span>
+            <p id="testimonial" class="text-2xl md:text-3xl text-gray-200 italic font-medium min-h-[90px] flex items-center justify-center">
+                "The best gym I've ever joined! The diet plans and certified trainers made achieving my goals effortless."
+            </p>
+            <div class="mt-6 flex justify-center items-center gap-1 text-amber-400">
+                ★★★★★
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="py-20 bg-slate-950 border-t border-gray-800">
+    <div class="max-w-4xl mx-auto px-6">
+        <div class="text-center mb-12">
+            <span class="text-red-500 uppercase tracking-widest font-bold text-sm">GET IN TOUCH</span>
+            <h2 class="text-4xl md:text-5xl font-black mt-2">Contact Us</h2>
+            <p class="text-gray-400 mt-2">Have a question? Send us a message and our team will get back to you.</p>
+        </div>
+
+        <form method="POST" action="{% url 'home' %}" class="grid md:grid-cols-2 gap-6 bg-gray-900 p-8 md:p-10 rounded-3xl border border-gray-800 shadow-2xl">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2">Your Name</label>
+                <input name="name" class="w-full p-4 rounded-xl bg-gray-800 border border-gray-700 text-white focus:border-red-500 outline-none" placeholder="e.g. John Doe" required>
+            </div>
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2">Email Address</label>
+                <input name="email" type="email" class="w-full p-4 rounded-xl bg-gray-800 border border-gray-700 text-white focus:border-red-500 outline-none" placeholder="e.g. john@example.com" required>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-xs uppercase tracking-wider text-gray-400 mb-2">Message / Inquiries</label>
+                <textarea name="message" class="w-full p-4 rounded-xl bg-gray-800 border border-gray-700 text-white focus:border-red-500 outline-none h-36" placeholder="Tell us how we can help you..." required></textarea>
+            </div>
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl md:col-span-2 transition shadow-xl shadow-red-600/30">
+                Send Inquiry
+            </button>
+        </form>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-black py-10 border-t border-gray-900 text-center text-gray-400 text-sm">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p>© 2026 FITZONE GYM. All Rights Reserved.</p>
+        <div class="flex gap-6">
+            <a href="{% url 'diet_plans' %}" class="hover:text-white transition">Diet Plans</a>
+            <a href="{% url 'admin_dashboard' %}" class="text-red-400 hover:text-white transition font-semibold">Admin Dashboard</a>
+        </div>
+    </div>
+</footer>
+
+<!-- DIET PLAN DETAIL MODAL -->
+<div id="dietModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-3xl max-w-2xl w-full p-8 text-white max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-start border-b border-gray-800 pb-4 mb-6">
+            <div>
+                <span id="modalCategory" class="text-xs bg-amber-500 text-black font-black px-3 py-1 rounded-full uppercase"></span>
+                <h3 id="modalTitle" class="text-2xl font-black mt-2"></h3>
+            </div>
+            <button onclick="closeDietModal()" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+        </div>
+
+        <div id="modalContent" class="space-y-4">
+            <!-- Dynamic Content Loaded via AJAX -->
+        </div>
+
+        <div class="mt-8 pt-4 border-t border-gray-800 flex justify-end">
+            <button onclick="closeDietModal()" class="bg-gray-800 hover:bg-gray-700 px-6 py-2.5 rounded-xl font-semibold">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<button id="topBtn" class="fixed bottom-6 right-6 bg-red-600 p-4 rounded-full shadow-2xl hover:bg-red-700 transition hidden z-40">
+    ⬆
+</button>
+
+<script>
+// Mobile menu toggle
+const menuBtn = document.getElementById("menuBtn");
+const mobile = document.getElementById("mobileMenu");
+menuBtn.onclick = () => {
+    mobile.classList.toggle("hidden");
+};
+
+// BMI Calculation
+function calculateBMI() {
+    let w = parseFloat(document.getElementById("weight").value);
+    let h = parseFloat(document.getElementById("height").value) / 100;
+    let box = document.getElementById("resultBox");
+    let result = document.getElementById("result");
+    let rec = document.getElementById("recommendation");
+
+    if (!w || !h || w <= 0 || h <= 0) {
+        alert("Please enter valid height and weight values!");
+        return;
+    }
+
+    let bmi = (w / (h * h)).toFixed(1);
+    let msg = "";
+    let recText = "";
+    let colorClass = "";
+
+    if (bmi < 18.5) {
+        msg = "Underweight";
+        recText = "Recommended: Muscle Gain & High Protein Surplus Diet Plan";
+        colorClass = "bg-blue-900/40 border-blue-500 text-blue-300";
+    } else if (bmi < 25) {
+        msg = "Normal & Healthy";
+        recText = "Recommended: Lean Muscle Maintenance & High Energy Athletic Diet";
+        colorClass = "bg-green-900/40 border-green-500 text-green-300";
+    } else if (bmi < 30) {
+        msg = "Overweight";
+        recText = "Recommended: Caloric Deficit & High Protein Fat Loss Diet Plan";
+        colorClass = "bg-yellow-900/40 border-yellow-500 text-yellow-300";
+    } else {
+        msg = "Obese";
+        recText = "Recommended: Keto Low-Carb Rapid Fat Loss & Cardio Routine";
+        colorClass = "bg-red-900/40 border-red-500 text-red-300";
+    }
+
+    box.className = `text-center mt-6 p-4 rounded-xl border ${colorClass}`;
+    result.innerHTML = `BMI : ${bmi} (${msg})`;
+    rec.innerText = recText;
+    box.classList.remove("hidden");
+}
+
+// Testimonials Carousel
+const testimonials = [
+    "\"The best gym I've ever joined! The diet plans and certified trainers made achieving my goals effortless.\"",
+    "\"Certified trainers, state of the art equipment, and seamless online membership!\"",
+    "\"I lost 12kg in 4 months following the FitZone Fat Loss diet and strength training.\"",
+    "\"Affordable membership plans with amazing service and personal diet support.\""
+];
+let tIndex = 0;
+setInterval(() => {
+    tIndex = (tIndex + 1) % testimonials.length;
+    let elem = document.getElementById("testimonial");
+    if (elem) elem.innerHTML = testimonials[tIndex];
+}, 4000);
+
+// Counters
+const counters = document.querySelectorAll(".counter");
+counters.forEach(counter => {
+    let update = () => {
+        let target = +counter.dataset.target;
+        let count = +counter.innerText;
+        let inc = target / 100;
+        if (count < target) {
+            counter.innerText = Math.ceil(count + inc);
+            setTimeout(update, 20);
+        } else {
+            counter.innerText = target;
+        }
+    };
+    update();
+});
+
+// Back to top button
+let topBtn = document.getElementById("topBtn");
+window.onscroll = function () {
+    if (document.documentElement.scrollTop > 300) {
+        topBtn.classList.remove("hidden");
+    } else {
+        topBtn.classList.add("hidden");
+    }
+};
+topBtn.onclick = function () {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+// Diet Plan Modal AJAX
+function openDietModal(planId) {
+    fetch(`/diet-plans/${planId}/json/`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('modalCategory').innerText = data.category;
+            document.getElementById('modalTitle').innerText = data.title;
+            document.getElementById('modalContent').innerHTML = `
+                <p class="text-gray-300">${data.description}</p>
+                <div class="grid grid-cols-4 gap-2 bg-gray-800 p-3 rounded-xl text-center text-xs">
+                    <div><span class="text-gray-400 block">Calories</span><span class="font-bold text-amber-400 text-sm">${data.target_calories} kcal</span></div>
+                    <div><span class="text-gray-400 block">Protein</span><span class="font-bold text-red-400 text-sm">${data.protein}g</span></div>
+                    <div><span class="text-gray-400 block">Carbs</span><span class="font-bold text-yellow-400 text-sm">${data.carbs}g</span></div>
+                    <div><span class="text-gray-400 block">Fats</span><span class="font-bold text-blue-400 text-sm">${data.fats}g</span></div>
+                </div>
+                <div class="space-y-3 mt-4 text-sm">
+                    <div class="bg-gray-800/80 p-3.5 rounded-xl border border-gray-700/60">
+                        <strong class="text-amber-400 block mb-1">🍳 Breakfast:</strong>
+                        <p class="text-gray-200">${data.breakfast}</p>
+                    </div>
+                    ${data.mid_morning ? `
+                    <div class="bg-gray-800/80 p-3.5 rounded-xl border border-gray-700/60">
+                        <strong class="text-amber-400 block mb-1">🍏 Mid-Morning Snack:</strong>
+                        <p class="text-gray-200">${data.mid_morning}</p>
+                    </div>` : ''}
+                    <div class="bg-gray-800/80 p-3.5 rounded-xl border border-gray-700/60">
+                        <strong class="text-amber-400 block mb-1">🥗 Lunch:</strong>
+                        <p class="text-gray-200">${data.lunch}</p>
+                    </div>
+                    ${data.evening_snack ? `
+                    <div class="bg-gray-800/80 p-3.5 rounded-xl border border-gray-700/60">
+                        <strong class="text-amber-400 block mb-1">🥜 Evening / Pre-Workout:</strong>
+                        <p class="text-gray-200">${data.evening_snack}</p>
+                    </div>` : ''}
+                    <div class="bg-gray-800/80 p-3.5 rounded-xl border border-gray-700/60">
+                        <strong class="text-amber-400 block mb-1">🍲 Dinner:</strong>
+                        <p class="text-gray-200">${data.dinner}</p>
+                    </div>
+                </div>
+                ${data.key_tips ? `
+                <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-200 mt-4">
+                    <strong>💡 Expert Tip:</strong> ${data.key_tips}
+                </div>` : ''}
+            `;
+            document.getElementById('dietModal').classList.remove('hidden');
+        });
+}
+
+function closeDietModal() {
+    document.getElementById('dietModal').classList.add('hidden');
+}
+</script>
+
+</body>
+</html>

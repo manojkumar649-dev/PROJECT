@@ -1,0 +1,44 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Delete Plan - FitZone Admin{% endblock %}
+{% block page_title %}Delete Membership Plan{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-12 bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center shadow-2xl">
+    
+    <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-2xl mx-auto mb-4">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+
+    <h1 class="text-xl font-black text-white">
+        Remove Membership Plan?
+    </h1>
+
+    <p class="text-xs text-slate-400 mt-2">
+        Are you sure you want to delete <span class="font-bold text-white">{{ plan.name }}</span> (₹{{ plan.price }})?
+    </p>
+
+    {% if subs_count > 0 %}
+    <div class="mt-4 p-3 rounded-xl bg-slate-950 border border-amber-500/30 text-[11px] text-amber-300 text-left">
+        <i class="fa-solid fa-shield-halved mr-1"></i>
+        <b>Safety Protection:</b> This plan has <b>{{ subs_count }} existing subscription(s)</b>. To preserve customer historical integrity, confirming will safely <b>deactivate</b> the plan instead of permanently wiping it.
+    </div>
+    {% else %}
+    <div class="mt-4 p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 text-left">
+        <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i>
+        No active subscriptions depend on this plan. It will be completely removed.
+    </div>
+    {% endif %}
+
+    <form method="POST" action="" class="mt-6 flex items-center justify-center gap-3">
+        {% csrf_token %}
+        <a href="{% url 'admin_plans' %}" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+            Cancel
+        </a>
+        <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-lg shadow-red-600/30 transition">
+            {% if subs_count > 0 %}Deactivate Plan{% else %}Delete Plan{% endif %}
+        </button>
+    </form>
+
+</div>
+{% endblock %}

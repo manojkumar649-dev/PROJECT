@@ -1,0 +1,238 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Member: {{ member.get_full_name|default:member.username }} - FitZone Admin{% endblock %}
+{% block page_title %}Member Dossier{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Navigation -->
+    <div class="flex items-center justify-between">
+        <a href="{% url 'admin_members' %}" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back to Members List</span>
+        </a>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'admin_member_edit' member.id %}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span>Edit Profile</span>
+            </a>
+            <a href="{% url 'admin_subscription_assign' %}?user_id={{ member.id }}" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md shadow-red-600/30 transition">
+                <i class="fa-solid fa-plus"></i>
+                <span>Assign Membership</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- MEMBER PROFILE HERO CARD -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            
+            <div class="flex items-center gap-5">
+                <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-red-600 to-red-500 flex items-center justify-center text-3xl font-black text-white shadow-xl shadow-red-500/25">
+                    {{ member.username|slice:":1"|upper }}
+                </div>
+                <div>
+                    <div class="flex items-center gap-2.5">
+                        <h1 class="text-xl sm:text-2xl font-black text-white">
+                            {{ member.get_full_name|default:member.username }}
+                        </h1>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold {% if member.is_active %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% else %}bg-rose-500/10 text-rose-400 border border-rose-500/20{% endif %}">
+                            {% if member.is_active %}Active Member{% else %}Deactivated{% endif %}
+                        </span>
+                    </div>
+                    <div class="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <span><i class="fa-regular fa-envelope mr-1 text-slate-500"></i> {{ member.email }}</span>
+                        <span><i class="fa-solid fa-phone mr-1 text-slate-500"></i> {{ profile.phone|default:"No phone" }}</span>
+                        <span><i class="fa-regular fa-calendar mr-1 text-slate-500"></i> Member since {{ member.date_joined|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Membership Highlight -->
+            <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 min-w-[240px]">
+                <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Current Membership
+                </div>
+                {% if active_sub %}
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span class="text-base font-bold text-white">{{ active_sub.plan_name }}</span>
+                    <span class="text-xs font-bold text-emerald-400">{{ active_sub.days_remaining }} days left</span>
+                </div>
+                <div class="mt-1 text-xs text-slate-400">
+                    Valid until <span class="text-slate-200 font-medium">{{ active_sub.end_date }}</span>
+                </div>
+                {% else %}
+                <div class="mt-2 text-sm text-slate-400 italic">No active membership</div>
+                <a href="{% url 'admin_subscription_assign' %}?user_id={{ member.id }}" class="mt-2 inline-block text-xs text-red-400 hover:underline">
+                    Assign a plan now →
+                </a>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- Biometrics & Fitness Details -->
+        <div class="mt-6 pt-6 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+            <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800/50">
+                <span class="text-slate-400 block text-[10px] uppercase font-semibold">Age</span>
+                <span class="text-white font-bold text-sm">{{ profile.age|default:"N/A" }} {% if profile.age %}Yrs{% endif %}</span>
+            </div>
+            <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800/50">
+                <span class="text-slate-400 block text-[10px] uppercase font-semibold">Gender</span>
+                <span class="text-white font-bold text-sm">{{ profile.gender|default:"Not specified" }}</span>
+            </div>
+            <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800/50">
+                <span class="text-slate-400 block text-[10px] uppercase font-semibold">Diet Plan</span>
+                <span class="text-white font-bold text-sm">{{ profile.current_diet_plan.title|default:"Standard Diet" }}</span>
+            </div>
+            <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800/50">
+                <span class="text-slate-400 block text-[10px] uppercase font-semibold">Fitness Goal</span>
+                <span class="text-white font-bold text-sm truncate block" title="{{ profile.fitness_goal }}">{{ profile.fitness_goal|default:"General Fitness" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS OR DATA SECTIONS -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Subscription History -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-id-card text-red-500"></i>
+                    <span>Subscription History</span>
+                </h2>
+                <a href="{% url 'admin_subscription_assign' %}?user_id={{ member.id }}" class="text-xs text-red-400 hover:text-red-300">
+                    + New
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase">
+                            <th class="pb-2.5">Plan</th>
+                            <th class="pb-2.5">Price</th>
+                            <th class="pb-2.5">Status</th>
+                            <th class="pb-2.5">Valid Till</th>
+                            <th class="pb-2.5 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60 text-slate-300">
+                        {% for sub in subscriptions %}
+                        <tr class="hover:bg-slate-800/40">
+                            <td class="py-2.5 font-semibold text-white">{{ sub.plan_name }}</td>
+                            <td class="py-2.5 font-bold text-slate-200">₹{{ sub.price }}</td>
+                            <td class="py-2.5">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {% if sub.status == 'Active' %}bg-emerald-500/10 text-emerald-400{% elif sub.status == 'Expired' %}bg-rose-500/10 text-rose-400{% else %}bg-slate-800 text-slate-400{% endif %}">
+                                    {{ sub.status }}
+                                </span>
+                            </td>
+                            <td class="py-2.5 text-slate-400">{{ sub.end_date }}</td>
+                            <td class="py-2.5 text-right">
+                                <a href="{% url 'admin_subscription_renew' sub.id %}" class="text-[11px] font-bold text-red-400 hover:underline">Renew</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="py-6 text-center text-slate-500">No subscriptions recorded.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payments & Invoices -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice-dollar text-emerald-500"></i>
+                    <span>Invoices & Payments</span>
+                </h2>
+                <a href="{% url 'admin_payment_add' %}" class="text-xs text-red-400 hover:text-red-300">
+                    + Record
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase">
+                            <th class="pb-2.5">Invoice #</th>
+                            <th class="pb-2.5">Amount</th>
+                            <th class="pb-2.5">Method</th>
+                            <th class="pb-2.5">Date</th>
+                            <th class="pb-2.5 text-right">PDF</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60 text-slate-300">
+                        {% for p in payments %}
+                        <tr class="hover:bg-slate-800/40">
+                            <td class="py-2.5 font-mono text-slate-200">{{ p.invoice_number }}</td>
+                            <td class="py-2.5 font-bold text-emerald-400">₹{{ p.amount }}</td>
+                            <td class="py-2.5 text-slate-400">{{ p.payment_method }}</td>
+                            <td class="py-2.5 text-slate-400">{{ p.payment_date|date:"M d, Y" }}</td>
+                            <td class="py-2.5 text-right">
+                                <a href="{% url 'admin_payment_invoice_pdf' p.id %}" target="_blank" class="p-1 rounded bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white transition">
+                                    <i class="fa-solid fa-download text-xs"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="py-6 text-center text-slate-500">No payment history found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Attendance History for this Member -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-clipboard-user text-blue-500"></i>
+                <span>Recent Attendance Log (Last 30 check-ins)</span>
+            </h2>
+            <span class="text-xs text-slate-400">{{ attendances.count }} recorded days</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase">
+                        <th class="pb-2.5">Date</th>
+                        <th class="pb-2.5">Check-in Time</th>
+                        <th class="pb-2.5">Status</th>
+                        <th class="pb-2.5">Notes</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60 text-slate-300">
+                    {% for att in attendances %}
+                    <tr class="hover:bg-slate-800/40">
+                        <td class="py-2.5 font-medium text-white">{{ att.date|date:"D, M d, Y" }}</td>
+                        <td class="py-2.5 font-mono text-slate-300">{{ att.check_in_time }}</td>
+                        <td class="py-2.5">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {% if att.status == 'Present' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% else %}bg-amber-500/10 text-amber-400 border border-amber-500/20{% endif %}">
+                                {{ att.status }}
+                            </span>
+                        </td>
+                        <td class="py-2.5 text-slate-400">{{ att.notes|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="py-6 text-center text-slate-500">No attendance check-ins recorded for this member.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

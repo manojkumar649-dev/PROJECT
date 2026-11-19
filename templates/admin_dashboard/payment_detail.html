@@ -1,0 +1,134 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Invoice #{{ payment.invoice_number }} - FitZone Admin{% endblock %}
+{% block page_title %}Invoice Details{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+    <div class="flex items-center justify-between">
+        <a href="{% url 'admin_payments' %}" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back to Payments</span>
+        </a>
+        <a href="{% url 'admin_payment_invoice_pdf' payment.id %}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-lg shadow-red-600/30 transition">
+            <i class="fa-solid fa-file-pdf"></i>
+            <span>Download Official PDF Invoice</span>
+        </a>
+    </div>
+
+    <!-- Invoice Sheet Simulation -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8">
+        
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800 gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-red-600 to-red-500 flex items-center justify-center text-white text-xl">
+                    <i class="fa-solid fa-dumbbell"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-black text-white">FITZONE GYM & FITNESS</h2>
+                    <p class="text-xs text-slate-400">123 Fitness Boulevard, Health District | GST: 33AAAAA0000A1Z5</p>
+                </div>
+            </div>
+            <div class="sm:text-right">
+                <div class="text-xs uppercase font-bold text-red-500 tracking-wider">OFFICIAL TAX INVOICE</div>
+                <div class="text-lg font-mono font-bold text-white mt-0.5">{{ payment.invoice_number }}</div>
+                <div class="text-xs text-slate-400 mt-0.5">{{ payment.payment_date|date:"F d, Y - h:i A" }}</div>
+            </div>
+        </div>
+
+        <!-- Billed to & Meta -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
+            <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+                <span class="text-[10px] uppercase font-bold text-slate-400 block mb-2">Billed To Member</span>
+                {% if payment.user %}
+                <div class="font-bold text-white text-sm">{{ payment.user.get_full_name|default:payment.user.username }}</div>
+                <div class="text-slate-300 mt-1">{{ payment.user.email }}</div>
+                <div class="text-slate-400 mt-0.5">{{ payment.user.profile.phone|default:"No Phone Recorded" }}</div>
+                <div class="text-[10px] text-slate-400 mt-1">Member ID: #{{ payment.user.id }}</div>
+                {% else %}
+                <div class="font-bold text-white text-sm">{{ payment.subscription.customer_name|default:"Walk-in Customer" }}</div>
+                <div class="text-slate-300 mt-1">{{ payment.subscription.customer_email }}</div>
+                {% endif %}
+            </div>
+
+            <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+                <span class="text-[10px] uppercase font-bold text-slate-400 block mb-2">Transaction Meta</span>
+                <div class="flex justify-between py-0.5">
+                    <span class="text-slate-400">Payment Status:</span>
+                    <span class="font-bold {% if payment.payment_status == 'Paid' %}text-emerald-400{% else %}text-amber-400{% endif %}">{{ payment.payment_status }}</span>
+                </div>
+                <div class="flex justify-between py-0.5">
+                    <span class="text-slate-400">Payment Channel:</span>
+                    <span class="font-medium text-white">{{ payment.payment_method }}</span>
+                </div>
+                <div class="flex justify-between py-0.5">
+                    <span class="text-slate-400">Transaction ID:</span>
+                    <span class="font-mono text-slate-300">{{ payment.transaction_id|default:"TXN-DIRECT" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Breakdown -->
+        <div class="border border-slate-800 rounded-2xl overflow-hidden">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800">
+                        <th class="py-3 px-4">Item & Description</th>
+                        <th class="py-3 px-4">Cycle</th>
+                        <th class="py-3 px-4 text-right">Qty</th>
+                        <th class="py-3 px-4 text-right">Rate</th>
+                        <th class="py-3 px-4 text-right">Total</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800 text-slate-300">
+                    <tr>
+                        <td class="py-4 px-4">
+                            <div class="font-bold text-white">
+                                {{ payment.subscription.plan_name|default:payment.notes|default:"Gym Facility Access" }}
+                            </div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">
+                                Gym membership fee & fitness center access privileges
+                            </div>
+                        </td>
+                        <td class="py-4 px-4 text-slate-400">
+                            {{ payment.subscription.billing_cycle|default:"Direct" }}
+                        </td>
+                        <td class="py-4 px-4 text-right text-slate-300">1</td>
+                        <td class="py-4 px-4 text-right text-slate-300">₹{{ payment.amount }}</td>
+                        <td class="py-4 px-4 text-right font-bold text-white">₹{{ payment.amount }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Summary Totals -->
+        <div class="flex justify-end text-xs">
+            <div class="w-full sm:w-64 space-y-2">
+                <div class="flex justify-between text-slate-400">
+                    <span>Subtotal:</span>
+                    <span>₹{{ payment.amount }}</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                    <span>Taxes (CGST + SGST):</span>
+                    <span>₹0.00</span>
+                </div>
+                <div class="pt-2 border-t border-slate-800 flex justify-between text-base font-black text-white">
+                    <span>Grand Total:</span>
+                    <span class="text-emerald-400">₹{{ payment.amount }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        {% if payment.notes %}
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 text-xs text-slate-400">
+            <span class="font-bold text-slate-300">Notes:</span> {{ payment.notes }}
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+{% endblock %}

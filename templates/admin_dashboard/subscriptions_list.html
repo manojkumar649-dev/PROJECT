@@ -1,0 +1,169 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Subscriptions - FitZone Admin{% endblock %}
+{% block page_title %}Subscription Management{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-black text-white">Member Subscriptions</h1>
+            <p class="text-xs text-slate-400 mt-0.5">Track active, expiring, expired, and cancelled membership contracts</p>
+        </div>
+        <div class="flex items-center gap-2.5">
+            <a href="{% url 'admin_subscription_assign' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-lg shadow-red-600/30 transition">
+                <i class="fa-solid fa-plus"></i>
+                <span>Assign Membership</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters & Search Bar -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <form method="GET" action="" class="flex-1 flex flex-col sm:flex-row items-center gap-3">
+            <div class="relative w-full sm:max-w-xs">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                </span>
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ search_query }}"
+                    placeholder="Search member, email, plan..."
+                    class="w-full pl-9 pr-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none text-xs text-white placeholder-slate-500">
+            </div>
+
+            <!-- Filter tabs -->
+            <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                <a href="?status=all{% if search_query %}&q={{ search_query }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition {% if status_filter == 'all' %}bg-red-600 text-white{% else %}text-slate-400 hover:bg-slate-800 hover:text-white{% endif %}">
+                    All ({{ total_count }})
+                </a>
+                <a href="?status=Active{% if search_query %}&q={{ search_query }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition {% if status_filter == 'Active' %}bg-emerald-600 text-white{% else %}text-slate-400 hover:bg-slate-800 hover:text-white{% endif %}">
+                    Active
+                </a>
+                <a href="?status=Expiring Soon{% if search_query %}&q={{ search_query }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition {% if status_filter == 'Expiring Soon' %}bg-amber-600 text-white{% else %}text-slate-400 hover:bg-slate-800 hover:text-white{% endif %}">
+                    Expiring Soon
+                </a>
+                <a href="?status=Expired{% if search_query %}&q={{ search_query }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition {% if status_filter == 'Expired' %}bg-rose-600 text-white{% else %}text-slate-400 hover:bg-slate-800 hover:text-white{% endif %}">
+                    Expired
+                </a>
+                <a href="?status=Cancelled{% if search_query %}&q={{ search_query }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition {% if status_filter == 'Cancelled' %}bg-slate-700 text-white{% else %}text-slate-400 hover:bg-slate-800 hover:text-white{% endif %}">
+                    Cancelled
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="bg-slate-950/60 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                        <th class="py-3.5 px-4">Member</th>
+                        <th class="py-3.5 px-4">Plan Name</th>
+                        <th class="py-3.5 px-4">Price</th>
+                        <th class="py-3.5 px-4">Cycle</th>
+                        <th class="py-3.5 px-4">Start Date</th>
+                        <th class="py-3.5 px-4">End Date</th>
+                        <th class="py-3.5 px-4">Status</th>
+                        <th class="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60 text-slate-300">
+                    {% for sub in subscriptions %}
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="py-3.5 px-4">
+                            {% if sub.user %}
+                            <a href="{% url 'admin_member_detail' sub.user.id %}" class="font-bold text-white hover:text-red-400 transition">
+                                {{ sub.customer_name }}
+                            </a>
+                            {% else %}
+                            <span class="font-bold text-white">{{ sub.customer_name }}</span>
+                            {% endif %}
+                            <div class="text-[11px] text-slate-400">{{ sub.customer_email }}</div>
+                        </td>
+                        <td class="py-3.5 px-4 font-semibold text-slate-200">
+                            {{ sub.plan_name }}
+                        </td>
+                        <td class="py-3.5 px-4 font-bold text-white">
+                            ₹{{ sub.price }}
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-400">
+                            {{ sub.billing_cycle }}
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-300 font-medium">
+                            {{ sub.start_date }}
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-300 font-medium">
+                            {{ sub.end_date|default:"-" }}
+                            {% if sub.status == 'Active' %}
+                            <span class="text-[10px] text-emerald-400 block font-normal">{{ sub.days_remaining }} days remaining</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-4">
+                            {% if sub.status == 'Active' %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active
+                            </span>
+                            {% elif sub.status == 'Expiring Soon' %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Expiring Soon
+                            </span>
+                            {% elif sub.status == 'Expired' %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 border border-rose-500/20 text-rose-400">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Expired
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400">
+                                {{ sub.status }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-4 text-right">
+                            <div class="inline-flex items-center gap-2">
+                                <a href="{% url 'admin_subscription_renew' sub.id %}" class="px-2.5 py-1 rounded-lg bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/20 text-[11px] font-bold transition">
+                                    Renew
+                                </a>
+                                {% if sub.status != 'Cancelled' %}
+                                <a href="{% url 'admin_subscription_cancel' sub.id %}" onclick="return confirm('Cancel subscription #{{ sub.id }}?')" class="p-1 rounded-lg text-slate-400 hover:text-rose-400 transition" title="Cancel Subscription">
+                                    <i class="fa-solid fa-ban text-xs"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-10 text-center text-slate-500">No subscriptions found matching query.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if subscriptions.has_other_pages %}
+        <div class="px-6 py-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+            <div>
+                Page {{ subscriptions.number }} of {{ subscriptions.paginator.num_pages }}
+            </div>
+            <div class="flex items-center gap-1">
+                {% if subscriptions.has_previous %}
+                <a href="?page={{ subscriptions.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">Previous</a>
+                {% endif %}
+
+                <span class="px-3 py-1.5 rounded-lg bg-red-600 text-white font-bold">{{ subscriptions.number }}</span>
+
+                {% if subscriptions.has_next %}
+                <a href="?page={{ subscriptions.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white">Next</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

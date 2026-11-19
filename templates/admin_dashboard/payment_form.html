@@ -1,0 +1,91 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Record Payment - FitZone Admin{% endblock %}
+{% block page_title %}Record Payment{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto space-y-6">
+
+    <div class="flex items-center justify-between">
+        <a href="{% url 'admin_payments' %}" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back to Payments</span>
+        </a>
+    </div>
+
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+        <div class="mb-6 pb-6 border-b border-slate-800">
+            <h1 class="text-xl font-black text-white">
+                Record Payment / Fee
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">
+                Manually generate an invoice and record a fee or membership payment.
+            </p>
+        </div>
+
+        <form method="POST" action="" class="space-y-4">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Select Member (Optional)</label>
+                <select name="user_id" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none text-xs text-white">
+                    <option value="">-- Walk-in Guest / Non-member --</option>
+                    {% for m in members %}
+                    <option value="{{ m.id }}">{{ m.get_full_name|default:m.username }} ({{ m.email }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Amount (₹ INR) <span class="text-red-500">*</span></label>
+                    <input type="number" step="0.01" name="amount" required placeholder="e.g. 1500.00" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none text-xs text-white">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Payment Method</label>
+                    <select name="payment_method" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none text-xs text-white">
+                        <option value="Cash" selected>Cash</option>
+                        <option value="UPI">UPI / GPay / PhonePe</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="Net Banking">Net Banking</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Payment Status</label>
+                    <select name="payment_status" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none text-xs text-white">
+                        <option value="Paid" selected>Paid</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Failed">Failed</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Transaction ID (Optional)</label>
+                    <input type="text" name="transaction_id" placeholder="Leave empty for auto-generated ID" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none text-xs text-white">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Notes / Description</label>
+                <textarea name="notes" rows="2" placeholder="e.g. Locker fee, Personal coaching add-on, Annual renewal" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none text-xs text-white"></textarea>
+            </div>
+
+            <div class="pt-6 border-t border-slate-800 flex items-center justify-end gap-3">
+                <a href="{% url 'admin_payments' %}" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+                    Cancel
+                </a>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-lg shadow-red-600/30 transition">
+                    Save & Generate Invoice
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+{% endblock %}

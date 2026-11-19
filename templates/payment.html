@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitZone Gym - Membership Checkout & SubTrack</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body {
+    background: linear-gradient(135deg, #111827, #000, #1f2937);
+}
+</style>
+
+</head>
+<body class="min-h-screen flex items-center justify-center p-6 text-gray-900">
+
+<div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden my-6">
+
+<div class="grid md:grid-cols-2">
+
+<!-- LEFT -->
+<div class="bg-black text-white p-10 flex flex-col justify-between">
+
+    <div>
+        <a href="{% url 'home' %}#plans" class="inline-flex items-center gap-2 text-red-500 font-bold mb-6 hover:text-red-400 text-sm">
+            ← Change Membership Plan
+        </a>
+
+        <div class="flex items-center gap-2 mb-2">
+            <span class="text-3xl">🔥</span>
+            <h1 class="text-3xl font-black">
+                FitZone Gym
+            </h1>
+        </div>
+
+        <p class="text-gray-400 mb-8 text-sm">
+            Complete your membership subscription and get immediate access to all gym facilities and custom diet plans.
+        </p>
+
+        <div class="space-y-4 bg-gray-900 p-6 rounded-2xl border border-gray-800">
+            <div class="flex justify-between items-center">
+                <span class="text-gray-400 text-sm">Selected Plan</span>
+                <span class="font-bold text-lg text-white">{{ plan.name }}</span>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <span class="text-gray-400 text-sm">Billing Cycle</span>
+                <span class="text-gray-200 text-sm">{{ plan.billing_cycle }} ({{ plan.duration_days }} Days)</span>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <span class="text-gray-400 text-sm">Base Price</span>
+                <span class="text-gray-200 text-sm">₹{{ plan.price|floatformat:2 }}</span>
+            </div>
+
+            <div id="discountRow" class="flex justify-between items-center text-green-400 text-sm hidden">
+                <span>Discount (Coupon)</span>
+                <span id="discountAmount">- ₹0.00</span>
+            </div>
+
+            <hr class="border-gray-800">
+
+            <div class="flex justify-between items-center text-xl font-black">
+                <span>Total Due</span>
+                <span id="displayTotal" class="text-red-500 text-2xl">₹{{ plan.price|floatformat:0 }}</span>
+            </div>
+        </div>
+
+        <div class="mt-6 text-xs text-gray-400 space-y-1">
+            <p>✓ Instant membership activation</p>
+            <p>✓ Full access to Gym equipment & trainers</p>
+            <p>✓ Personalized SQLite Diet Plans included</p>
+        </div>
+    </div>
+
+    <div class="mt-8 pt-4 border-t border-gray-800 text-xs text-gray-400">
+        Logged in as: <strong class="text-white">{{ user.username }}</strong> ({{ user.email }})
+    </div>
+
+</div>
+
+<!-- RIGHT FORM -->
+<div class="p-8 md:p-10">
+
+    <h2 class="text-3xl font-black mb-1 text-center">
+        Membership Checkout
+    </h2>
+    <p class="text-gray-500 text-xs text-center mb-6">Enter payment details to confirm subscription</p>
+
+    <form method="POST" action="{% url 'checkout' plan.id %}" class="space-y-4">
+        {% csrf_token %}
+
+        <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Member Name</label>
+            <input
+                id="name"
+                name="name"
+                type="text"
+                value="{{ user.get_full_name|default:user.username }}"
+                placeholder="Full Name"
+                required
+                class="w-full border rounded-xl p-3 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Email Address</label>
+            <input
+                id="email"
+                name="email"
+                type="email"
+                value="{{ user.email }}"
+                placeholder="Email Address"
+                required
+                class="w-full border rounded-xl p-3 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Coupon Code (Try 'FIT10' for 10% off)</label>
+            <div class="flex gap-2">
+                <input
+                    id="coupon"
+                    name="coupon"
+                    type="text"
+                    placeholder="Enter coupon code (e.g. FIT10)"
+                    class="w-full border rounded-xl p-3 focus:ring-2 focus:ring-red-500 outline-none text-sm uppercase">
+                <button
+                    type="button"
+                    onclick="applyCoupon()"
+                    class="bg-gray-800 hover:bg-gray-700 text-white px-5 rounded-xl text-xs font-bold uppercase transition">
+                    Apply
+                </button>
+            </div>
+            <p id="couponMsg" class="text-xs mt-1 text-gray-500"></p>
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Payment Method</label>
+            <select
+                id="payment_method"
+                name="payment_method"
+                class="w-full border rounded-xl p-3 focus:ring-2 focus:ring-red-500 outline-none text-sm bg-white">
+                <option value="UPI">UPI (Google Pay / PhonePe / Paytm)</option>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Debit Card">Debit Card</option>
+                <option value="Net Banking">Net Banking</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">UPI ID or Card Number</label>
+            <input
+                type="text"
+                placeholder="user@oksbi or 4532 •••• •••• 8892"
+                required
+                value="fitzone.member@okaxis"
+                class="w-full border rounded-xl p-3 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Expiry MM/YY</label>
+                <input
+                    type="text"
+                    placeholder="12/28"
+                    value="12/28"
+                    required
+                    class="w-full border rounded-xl p-3 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">CVV / Security PIN</label>
+                <input
+                    type="password"
+                    placeholder="•••"
+                    value="789"
+                    maxlength="4"
+                    required
+                    class="w-full border rounded-xl p-3 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+            </div>
+        </div>
+
+        <button
+            type="submit"
+            class="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl font-black text-base transition shadow-xl shadow-red-600/30 uppercase tracking-wider mt-4">
+            Pay Now & Confirm Membership
+        </button>
+
+    </form>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+const basePrice = {{ plan.price }};
+
+function applyCoupon() {
+    const code = document.getElementById("coupon").value.trim().toUpperCase();
+    const msg = document.getElementById("couponMsg");
+    const displayTotal = document.getElementById("displayTotal");
+    const discountRow = document.getElementById("discountRow");
+    const discountAmount = document.getElementById("discountAmount");
+
+    if (code === "FIT10") {
+        const discount = basePrice * 0.10;
+        const total = basePrice - discount;
+        discountRow.classList.remove("hidden");
+        discountAmount.innerText = "- ₹" + discount.toFixed(2);
+        displayTotal.innerText = "₹" + total.toFixed(0);
+        msg.className = "text-xs mt-1 text-green-600 font-semibold";
+        msg.innerText = "✓ Coupon 'FIT10' applied! 10% discount added.";
+    } else if (code === "FIT20") {
+        const discount = basePrice * 0.20;
+        const total = basePrice - discount;
+        discountRow.classList.remove("hidden");
+        discountAmount.innerText = "- ₹" + discount.toFixed(2);
+        displayTotal.innerText = "₹" + total.toFixed(0);
+        msg.className = "text-xs mt-1 text-green-600 font-semibold";
+        msg.innerText = "✓ Coupon 'FIT20' applied! 20% discount added.";
+    } else if (code === "") {
+        discountRow.classList.add("hidden");
+        displayTotal.innerText = "₹" + basePrice.toFixed(0);
+        msg.innerText = "";
+    } else {
+        discountRow.classList.add("hidden");
+        displayTotal.innerText = "₹" + basePrice.toFixed(0);
+        msg.className = "text-xs mt-1 text-red-500 font-semibold";
+        msg.innerText = "Invalid coupon code. Try 'FIT10'.";
+    }
+}
+</script>
+
+</body>
+</html>

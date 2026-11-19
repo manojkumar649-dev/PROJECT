@@ -1,0 +1,399 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Dashboard Overview - FitZone Admin{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Welcome Banner -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-red-950 via-slate-900 to-slate-900 border border-slate-800 p-6 sm:p-8">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-bold uppercase tracking-wider mb-2">
+                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                    Live Gym Telemetry
+                </span>
+                <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                    Welcome back, {{ request.user.first_name|default:request.user.username }}!
+                </h1>
+                <p class="text-sm text-slate-400 mt-1 max-w-xl">
+                    Here is the real-time operational status, membership health, billing metrics, and attendance tracking for your fitness facility today.
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5">
+                <a href="{% url 'admin_member_add' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-lg shadow-red-600/30 transition">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>New Member</span>
+                </a>
+                <a href="{% url 'admin_payment_add' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Record Payment</span>
+                </a>
+                <a href="{% url 'admin_attendance' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition">
+                    <i class="fa-solid fa-clipboard-user"></i>
+                    <span>Mark Attendance</span>
+                </a>
+            </div>
+        </div>
+        <!-- Decorative Background Glow -->
+        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    </div>
+
+    <!-- 7 DYNAMIC KPI CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        
+        <!-- Card 1: Total Members -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Members</span>
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-baseline justify-between">
+                <span class="text-3xl font-black text-white tracking-tight">{{ total_members }}</span>
+                <a href="{% url 'admin_members' %}" class="text-xs text-blue-400 hover:underline">View all →</a>
+            </div>
+            <div class="mt-2 text-xs text-slate-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-check text-blue-400 text-[10px]"></i>
+                <span>Registered gym profiles</span>
+            </div>
+        </div>
+
+        <!-- Card 2: Active Memberships -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Memberships</span>
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-id-card-clip"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-baseline justify-between">
+                <span class="text-3xl font-black text-emerald-400 tracking-tight">{{ active_memberships }}</span>
+                <a href="{% url 'admin_subscriptions' %}?status=Active" class="text-xs text-emerald-400 hover:underline">Active subs →</a>
+            </div>
+            <div class="mt-2 text-xs text-slate-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                <span>Currently access-eligible</span>
+            </div>
+        </div>
+
+        <!-- Card 3: Expired Memberships -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Expired Memberships</span>
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-baseline justify-between">
+                <span class="text-3xl font-black text-amber-400 tracking-tight">{{ expired_memberships }}</span>
+                <a href="{% url 'admin_subscriptions' %}?status=Expired" class="text-xs text-amber-400 hover:underline">Renew list →</a>
+            </div>
+            <div class="mt-2 text-xs text-slate-400 flex items-center gap-1.5">
+                <i class="fa-regular fa-clock text-amber-400 text-[10px]"></i>
+                <span>Due for plan renewal</span>
+            </div>
+        </div>
+
+        <!-- Card 4: Total Revenue -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Revenue</span>
+                <div class="w-10 h-10 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-black text-white tracking-tight">₹{{ total_revenue|floatformat:2 }}</span>
+                <a href="{% url 'admin_payments' %}" class="text-xs text-red-400 hover:underline">Invoices →</a>
+            </div>
+            <div class="mt-2 text-xs text-slate-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-trend-up text-emerald-400 text-[10px]"></i>
+                <span>Lifetime collections</span>
+            </div>
+        </div>
+
+        <!-- Card 5: Monthly Revenue -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Monthly Revenue</span>
+                <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-black text-purple-300 tracking-tight">₹{{ monthly_revenue|floatformat:2 }}</span>
+                <span class="text-[10px] uppercase font-bold text-slate-400">{% now "F Y" %}</span>
+            </div>
+            <div class="mt-2 text-xs text-slate-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-chart-column text-purple-400 text-[10px]"></i>
+                <span>Current month earnings</span>
+            </div>
+        </div>
+
+        <!-- Card 6: Pending Payments -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pending Payments</span>
+                <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-baseline justify-between">
+                <span class="text-3xl font-black text-rose-400 tracking-tight">{{ pending_payments_count }}</span>
+                <span class="text-xs font-semibold text-rose-300">₹{{ pending_payments_amt|floatformat:0 }}</span>
+            </div>
+            <div class="mt-2 text-xs text-slate-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-exclamation text-rose-400 text-[10px]"></i>
+                <span>Awaiting settlement</span>
+            </div>
+        </div>
+
+        <!-- Card 7: New Registrations -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">New Registrations</span>
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-baseline justify-between">
+                <span class="text-3xl font-black text-cyan-400 tracking-tight">{{ new_registrations }}</span>
+                <span class="text-[10px] uppercase font-bold text-slate-400">This Month</span>
+            </div>
+            <div class="mt-2 text-xs text-slate-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-bolt text-cyan-400 text-[10px]"></i>
+                <span>Gym membership signups</span>
+            </div>
+        </div>
+
+        <!-- Card 8: Today's Attendance -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Today's Check-ins</span>
+                <div class="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-person-running"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-baseline justify-between">
+                <span class="text-3xl font-black text-teal-400 tracking-tight">{{ today_attendance_count }}</span>
+                <span class="text-xs text-slate-400">{{ today_present }} On-time / {{ today_late }} Late</span>
+            </div>
+            <div class="mt-2 text-xs text-slate-400 flex items-center gap-1.5">
+                <a href="{% url 'admin_attendance' %}" class="text-teal-400 hover:underline">View check-in list →</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MIDDLE ROW: RECENT SUBSCRIPTIONS & POPULAR PLANS -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Recent Subscriptions (2 Cols) -->
+        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-6">
+            <div class="flex items-center justify-between mb-5">
+                <div>
+                    <h2 class="text-base font-bold text-white">Recent Memberships & Subscriptions</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Latest activated gym passes and plans</p>
+                </div>
+                <a href="{% url 'admin_subscriptions' %}" class="text-xs font-semibold text-red-400 hover:text-red-300 transition">
+                    View All →
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                            <th class="pb-3">Member</th>
+                            <th class="pb-3">Plan</th>
+                            <th class="pb-3">Amount</th>
+                            <th class="pb-3">Cycle</th>
+                            <th class="pb-3">Status</th>
+                            <th class="pb-3 text-right">Expiry</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60 text-slate-300">
+                        {% for sub in recent_subscriptions %}
+                        <tr class="hover:bg-slate-800/40 transition">
+                            <td class="py-3">
+                                <div class="font-semibold text-white">{{ sub.customer_name }}</div>
+                                <div class="text-[11px] text-slate-400">{{ sub.customer_email }}</div>
+                            </td>
+                            <td class="py-3 font-medium text-slate-200">
+                                {{ sub.plan_name }}
+                            </td>
+                            <td class="py-3 font-bold text-white">
+                                ₹{{ sub.price }}
+                            </td>
+                            <td class="py-3 text-slate-400">
+                                {{ sub.billing_cycle }}
+                            </td>
+                            <td class="py-3">
+                                {% if sub.status == 'Active' %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">Active</span>
+                                {% elif sub.status == 'Expiring Soon' %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400">Expiring Soon</span>
+                                {% elif sub.status == 'Expired' %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 border border-rose-500/20 text-rose-400">Expired</span>
+                                {% else %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/10 border border-slate-500/20 text-slate-400">{{ sub.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 text-right text-slate-400">
+                                {{ sub.end_date|default:"-" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="py-6 text-center text-slate-500">No subscriptions recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Membership Plans Distribution (1 Col) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-base font-bold text-white">Membership Plans</h2>
+                    <a href="{% url 'admin_plans' %}" class="text-xs text-red-400 hover:text-red-300">Manage →</a>
+                </div>
+                <div class="space-y-3.5">
+                    {% for plan in plans_distribution %}
+                    <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-white">{{ plan.name }}</span>
+                            <span class="text-xs font-bold text-red-400">₹{{ plan.price }}</span>
+                        </div>
+                        <div class="mt-1 flex items-center justify-between text-[11px] text-slate-400">
+                            <span>{{ plan.billing_cycle }} ({{ plan.duration_days }} days)</span>
+                            <span class="font-semibold text-slate-300">{{ plan.subs_count }} subscribed</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 mt-4">
+                <a href="{% url 'admin_plan_add' %}" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Create New Plan</span>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM ROW: RECENT PAYMENTS & RECENT MEMBERS -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Recent Payments -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+            <div class="flex items-center justify-between mb-5">
+                <div>
+                    <h2 class="text-base font-bold text-white">Recent Payments & Billing</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Real-time transactions and generated invoices</p>
+                </div>
+                <a href="{% url 'admin_payments' %}" class="text-xs font-semibold text-red-400 hover:text-red-300 transition">
+                    View Invoices →
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                            <th class="pb-3">Invoice #</th>
+                            <th class="pb-3">Member</th>
+                            <th class="pb-3">Amount</th>
+                            <th class="pb-3">Method</th>
+                            <th class="pb-3">Status</th>
+                            <th class="pb-3 text-right">PDF</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60 text-slate-300">
+                        {% for p in recent_payments %}
+                        <tr class="hover:bg-slate-800/40 transition">
+                            <td class="py-3 font-mono font-bold text-slate-200">
+                                {{ p.invoice_number }}
+                            </td>
+                            <td class="py-3">
+                                <div class="font-semibold text-white">{% if p.user %}{{ p.user.get_full_name|default:p.user.username }}{% else %}{{ p.subscription.customer_name|default:"Guest" }}{% endif %}</div>
+                            </td>
+                            <td class="py-3 font-bold text-emerald-400">
+                                ₹{{ p.amount }}
+                            </td>
+                            <td class="py-3 text-slate-400">
+                                {{ p.payment_method }}
+                            </td>
+                            <td class="py-3">
+                                {% if p.payment_status == 'Paid' %}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">Paid</span>
+                                {% else %}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 border border-rose-500/20 text-rose-400">{{ p.payment_status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 text-right">
+                                <a href="{% url 'admin_payment_invoice_pdf' p.id %}" target="_blank" class="p-1.5 rounded-lg bg-slate-800 hover:bg-red-600 hover:text-white text-slate-400 transition" title="Download PDF">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="py-6 text-center text-slate-500">No payment records found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Registered Members -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+            <div class="flex items-center justify-between mb-5">
+                <div>
+                    <h2 class="text-base font-bold text-white">Newly Registered Members</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Gym joiners synced directly from database</p>
+                </div>
+                <a href="{% url 'admin_members' %}" class="text-xs font-semibold text-red-400 hover:text-red-300 transition">
+                    View All ({{ total_members }}) →
+                </a>
+            </div>
+
+            <div class="space-y-3">
+                {% for u in recent_members %}
+                <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-950/50 border border-slate-800/80 hover:border-slate-700 transition">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-700 flex items-center justify-center font-bold text-slate-200 text-sm">
+                            {{ u.username|slice:":1"|upper }}
+                        </div>
+                        <div>
+                            <a href="{% url 'admin_member_detail' u.id %}" class="text-xs font-bold text-white hover:text-red-400 transition">
+                                {{ u.get_full_name|default:u.username }}
+                            </a>
+                            <div class="text-[11px] text-slate-400">{{ u.email }}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold {% if u.is_active %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% else %}bg-slate-800 text-slate-400{% endif %}">
+                            {% if u.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                        <div class="text-[10px] text-slate-400 mt-1">Joined {{ u.date_joined|date:"M d, Y" }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="py-6 text-center text-slate-500 text-xs">No registered members yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

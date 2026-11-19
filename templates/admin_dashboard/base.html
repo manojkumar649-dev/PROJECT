@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FitZone Admin Dashboard{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            800: '#991b1b',
+                            900: '#7f1d1d',
+                        },
+                        dark: {
+                            800: '#1e293b',
+                            850: '#151e2e',
+                            900: '#0f172a',
+                            950: '#090d16',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="h-full bg-slate-950 text-slate-100 flex overflow-hidden">
+
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden backdrop-blur-sm transition-opacity"></div>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 transform -translate-x-full lg:translate-x-0">
+        
+        <!-- Sidebar Header & Nav -->
+        <div class="flex flex-col flex-1 overflow-y-auto">
+            <!-- Brand Logo -->
+            <div class="h-16 flex items-center justify-between px-6 border-b border-slate-800 bg-slate-900/50">
+                <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 to-red-500 flex items-center justify-center text-white shadow-lg shadow-red-500/25 group-hover:scale-105 transition">
+                        <i class="fa-solid fa-dumbbell text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-lg text-white tracking-tight">FITZONE</span>
+                        <span class="block text-[10px] font-bold text-red-500 tracking-widest uppercase">ADMIN CONSOLE</span>
+                    </div>
+                </a>
+                <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="px-4 py-5 space-y-1">
+                <div class="px-3 pb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Core Operations
+                </div>
+
+                <!-- Dashboard -->
+                <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-red-600 text-white shadow-lg shadow-red-600/30{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                    <i class="fa-solid fa-chart-pie w-5 text-center text-base"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <!-- Members -->
+                <a href="{% url 'admin_members' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition {% if 'member' in request.resolver_match.url_name %}bg-red-600 text-white shadow-lg shadow-red-600/30{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                    <i class="fa-solid fa-users w-5 text-center text-base"></i>
+                    <span>Members</span>
+                </a>
+
+                <!-- Membership Plans -->
+                <a href="{% url 'admin_plans' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition {% if 'plan' in request.resolver_match.url_name %}bg-red-600 text-white shadow-lg shadow-red-600/30{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                    <i class="fa-solid fa-tags w-5 text-center text-base"></i>
+                    <span>Membership Plans</span>
+                </a>
+
+                <!-- Subscriptions -->
+                <a href="{% url 'admin_subscriptions' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition {% if 'subscription' in request.resolver_match.url_name %}bg-red-600 text-white shadow-lg shadow-red-600/30{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                    <i class="fa-solid fa-id-card w-5 text-center text-base"></i>
+                    <span>Subscriptions</span>
+                </a>
+
+                <div class="pt-5 px-3 pb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Finance & Tracking
+                </div>
+
+                <!-- Payments & Billing -->
+                <a href="{% url 'admin_payments' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition {% if 'payment' in request.resolver_match.url_name %}bg-red-600 text-white shadow-lg shadow-red-600/30{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                    <i class="fa-solid fa-file-invoice-dollar w-5 text-center text-base"></i>
+                    <span>Payments & Billing</span>
+                </a>
+
+                <!-- Attendance -->
+                <a href="{% url 'admin_attendance' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition {% if 'attendance' in request.resolver_match.url_name %}bg-red-600 text-white shadow-lg shadow-red-600/30{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                    <i class="fa-solid fa-clipboard-user w-5 text-center text-base"></i>
+                    <span>Attendance</span>
+                </a>
+
+                <!-- Reports & Analytics -->
+                <a href="{% url 'admin_reports' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition {% if 'report' in request.resolver_match.url_name %}bg-red-600 text-white shadow-lg shadow-red-600/30{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                    <i class="fa-solid fa-chart-line w-5 text-center text-base"></i>
+                    <span>Reports & Analytics</span>
+                </a>
+
+                <div class="pt-5 px-3 pb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    System
+                </div>
+
+                <!-- Settings -->
+                <a href="{% url 'admin_settings' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition {% if 'settings' in request.resolver_match.url_name %}bg-red-600 text-white shadow-lg shadow-red-600/30{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                    <i class="fa-solid fa-sliders w-5 text-center text-base"></i>
+                    <span>Settings</span>
+                </a>
+
+                <!-- View Public Website -->
+                <a href="{% url 'home' %}" target="_blank" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition">
+                    <i class="fa-solid fa-arrow-up-right-from-square w-5 text-center text-base"></i>
+                    <span>View Public Site</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Sidebar Footer / Admin User Profile -->
+        <div class="p-4 border-t border-slate-800 bg-slate-900/80">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 flex items-center justify-center font-bold text-sm">
+                        {{ request.user.username|slice:":1"|upper }}
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-xs font-semibold text-white truncate">
+                            {{ request.user.get_full_name|default:request.user.username }}
+                        </div>
+                        <div class="text-[10px] text-red-400 font-medium">
+                            {% if request.user.is_superuser %}Super Admin{% else %}Staff Admin{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'admin_logout' %}" title="Log out" class="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </a>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        
+        <!-- TOP NAVBAR -->
+        <header class="h-16 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-4 sm:px-6 z-30">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="text-slate-400">Gym Portal</span>
+                    <span class="text-slate-600">/</span>
+                    <span class="font-semibold text-white">{% block page_title %}Dashboard{% endblock %}</span>
+                </div>
+            </div>
+
+            <!-- Top Actions -->
+            <div class="flex items-center gap-3">
+                <a href="{% url 'admin_member_add' %}" class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-md shadow-red-600/30 transition">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Add Member</span>
+                </a>
+
+                <a href="{% url 'admin_subscription_assign' %}" class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Assign Plan</span>
+                </a>
+
+                <div class="h-6 w-px bg-slate-800 mx-1 hidden sm:block"></div>
+
+                <div class="text-xs text-slate-400 font-medium hidden md:block">
+                    <i class="fa-regular fa-calendar mr-1"></i>
+                    {% now "D, d M Y" %}
+                </div>
+            </div>
+        </header>
+
+        <!-- DJANGO FLASH MESSAGES -->
+        {% if messages %}
+        <div class="px-6 pt-4 space-y-2 z-20">
+            {% for message in messages %}
+            <div class="flex items-center justify-between p-3.5 rounded-xl text-sm border shadow-lg transition-all {% if message.tags == 'error' %}bg-red-500/10 border-red-500/30 text-red-300{% elif message.tags == 'warning' %}bg-amber-500/10 border-amber-500/30 text-amber-300{% else %}bg-emerald-500/10 border-emerald-500/30 text-emerald-300{% endif %}">
+                <div class="flex items-center gap-3">
+                    {% if message.tags == 'error' %}
+                        <i class="fa-solid fa-circle-exclamation text-red-400"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                    {% else %}
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                    {% endif %}
+                    <span>{{ message }}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- MAIN SCROLLABLE CONTENT -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-950">
+            {% block content %}{% endblock %}
+        </main>
+
+    </div>
+
+    <!-- Sidebar Toggle Script -->
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const isHidden = sidebar.classList.contains('-translate-x-full');
+            if (isHidden) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+        }
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
